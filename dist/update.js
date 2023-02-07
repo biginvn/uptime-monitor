@@ -382,7 +382,7 @@ generator: Upptime <https://github.com/upptime/upptime>
                                     ? `${downmsg.replace("$STATUS", "**down**").replace("$EMOJI", `${config.commitPrefixStatusDown || "🟥"}`)}`
                                     : `${downmsg.replace("$STATUS", "experiencing **degrading performance**").replace("$EMOJI", `${config.commitPrefixStatusDegraded || "🟥"}`)}`);
                                 if (status === "down") {
-                                    restartEc2(newIssue.data.number);
+                                    await restartEc2(newIssue.data.number);
                                 }
                             }
                             catch (error) {
@@ -454,7 +454,7 @@ generator: Upptime <https://github.com/upptime/upptime>
                         direction: "desc",
                         per_page: 1,
                     });
-                    restartEc2(issues.data[0].number);
+                    await restartEc2(issues.data[0].number);
                 }
                 console.log("Skipping commit, ", "status is", status);
             }

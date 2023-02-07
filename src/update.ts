@@ -16,6 +16,7 @@ import {curl} from "./helpers/request";
 import {getOwnerRepo} from "./helpers/secrets";
 import {SiteHistory} from "./interfaces";
 import {generateSummary} from "./summary";
+import { RequestParameters } from "@octokit/types";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -284,11 +285,12 @@ export const update = async (shouldCommit = false) => {
 
         const restartEc2 = async (issueNumber: number) => {
 
-            const comments = await octokit.issues.listComments({
+            const params:RequestParameters & Omit<{ owner: string; repo: string; issue_number: number; } & { since?: string | undefined; per_page?: number | undefined; page?: number | undefined; }, "headers" | "baseUrl" | "mediaType"> = ({
                 owner,
                 repo,
-                issueNumber,
-            });
+                issue_number: issueNumber,
+            })
+            const comments = await octokit.issues.listComments(params);
 
             console.log(comments)
 

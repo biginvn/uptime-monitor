@@ -109,7 +109,8 @@ const update = async (shouldCommit = false) => {
             currentStatus = siteHistory.status || "unknown";
             startTime = new Date(siteHistory.startTime || new Date());
         }
-        catch (error) { }
+        catch (error) {
+        }
         console.log("Current status", site.slug, currentStatus, startTime);
         /**
          * Check whether the site is online
@@ -256,7 +257,8 @@ const update = async (shouldCommit = false) => {
                 status = secondTry.status;
             }
             else {
-                wait(10000);
+                console.log('Waiting 30s retry...');
+                wait(30000);
                 const thirdTry = await performTestOnce();
                 if (thirdTry.status === "up") {
                     result = thirdTry.result;
@@ -265,6 +267,31 @@ const update = async (shouldCommit = false) => {
                 }
             }
         }
+        const restartEc2 = async (issueNumber) => {
+            const params = ({
+                owner,
+                repo,
+                issue_number: issueNumber,
+            });
+            const comments = await octokit.issues.listComments(params);
+            console.log(comments);
+            await octokit.issues.unlock({
+                owner,
+                repo,
+                issue_number: issueNumber,
+            });
+            await octokit.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body: `$<any>{site.name} is restart service.`,
+            });
+            await octokit.issues.lock({
+                owner,
+                repo,
+                issue_number: issueNumber,
+            });
+        };
         try {
             if (shouldCommit || currentStatus !== status) {
                 await fs_extra_1.writeFile(path_1.join(".", "history", `${slug}.yml`), `url: ${site.url}
@@ -348,6 +375,9 @@ generator: Upptime <https://github.com/upptime/upptime>
                                 await notifme_1.sendNotification(status === "down"
                                     ? `${downmsg.replace("$STATUS", "**down**").replace("$EMOJI", `${config.commitPrefixStatusDown || "🟥"}`)}`
                                     : `${downmsg.replace("$STATUS", "experiencing **degrading performance**").replace("$EMOJI", `${config.commitPrefixStatusDegraded || "🟥"}`)}`);
+                                if (status === "down") {
+                                    restartEc2(newIssue.data.number);
+                                }
                             }
                             catch (error) {
                                 console.log(error);
@@ -407,6 +437,20 @@ generator: Upptime <https://github.com/upptime/upptime>
                 }
             }
             else {
+                console.log('hihi');
+                if (status === "down") {
+                    const issues = await octokit.issues.listForRepo({
+                        owner,
+                        repo,
+                        labels: slug,
+                        filter: "all",
+                        state: "open",
+                        sort: "created",
+                        direction: "desc",
+                        per_page: 1,
+                    });
+                    restartEc2(issues.data[0].number);
+                }
                 console.log("Skipping commit, ", "status is", status);
             }
         }

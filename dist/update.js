@@ -274,23 +274,29 @@ const update = async (shouldCommit = false) => {
                 issue_number: issueNumber,
             });
             const comments = await octokit.issues.listComments(params);
-            console.log(comments);
-            await octokit.issues.unlock({
-                owner,
-                repo,
-                issue_number: issueNumber,
-            });
-            await octokit.issues.createComment({
-                owner,
-                repo,
-                issue_number: issueNumber,
-                body: `${site.name} is restart service.`,
-            });
-            await octokit.issues.lock({
-                owner,
-                repo,
-                issue_number: issueNumber,
-            });
+            // @ts-ignore
+            if (comments.data.filter(item => item.body.includes('restart service')).length >= 2) {
+                console.log('restart service ec2');
+            }
+            else {
+                await octokit.issues.unlock({
+                    owner,
+                    repo,
+                    issue_number: issueNumber,
+                });
+                console.log('create comment restart service');
+                await octokit.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: issueNumber,
+                    body: `${site.name} is restart service.`,
+                });
+                await octokit.issues.lock({
+                    owner,
+                    repo,
+                    issue_number: issueNumber,
+                });
+            }
         };
         try {
             if (shouldCommit || currentStatus !== status) {

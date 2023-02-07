@@ -428,7 +428,7 @@ generator: Upptime <https://github.com/upptime/upptime>
                                 );
 
                                 if (status === "down") {
-                                    restartEc2(newIssue.data.number)
+                                    await restartEc2(newIssue.data.number)
                                 }
                             } catch (error) {
                                 console.log(error);
@@ -500,7 +500,7 @@ generator: Upptime <https://github.com/upptime/upptime>
                         per_page: 1,
                     });
 
-                    restartEc2(issues.data[0].number)
+                    await restartEc2(issues.data[0].number)
                 }
                 console.log("Skipping commit, ", "status is", status);
             }

@@ -303,7 +303,7 @@ export const update = async (shouldCommit = false) => {
                 owner,
                 repo,
                 issue_number: issueNumber,
-                body: `$<any>{site.name} is restart service.`,
+                body: `${site.name} is restart service.`,
             });
 
             await octokit.issues.lock({

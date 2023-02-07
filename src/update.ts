@@ -282,7 +282,7 @@ export const update = async (shouldCommit = false) => {
             }
         }
 
-        const restartEc2 = async (issueNumber: string) => {
+        const restartEc2 = async (issueNumber: number) => {
 
             const comments = await octokit.issues.listComments({
                 owner,

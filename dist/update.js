@@ -452,10 +452,7 @@ generator: Upptime <https://github.com/upptime/upptime>
                         direction: "desc",
                         per_page: 1,
                     });
-
-                    if (issues.data.length) {
-                        await restartEc2(issues.data[0].number);
-                    }
+                    await restartEc2(issues.data[0].number);
                 }
                 console.log("Skipping commit, ", "status is", status);
             }

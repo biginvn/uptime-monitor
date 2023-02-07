@@ -293,9 +293,7 @@ export const update = async (shouldCommit = false) => {
             const comments = await octokit.issues.listComments(params);
 
             // @ts-ignore
-            if (comments.data.filter(item => item.body.includes('restart service')).length >= 2) {
-                console.log('restart service ec2')
-            } else {
+            if (comments.data.filter(item => item.body.includes('restart service')).length <= 2) {
                 await octokit.issues.unlock({
                     owner,
                     repo,
@@ -314,6 +312,8 @@ export const update = async (shouldCommit = false) => {
                     repo,
                     issue_number: issueNumber,
                 });
+
+                console.log('restart service ec2')
             }
 
         }

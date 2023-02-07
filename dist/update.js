@@ -437,7 +437,6 @@ generator: Upptime <https://github.com/upptime/upptime>
                 }
             }
             else {
-                console.log('hihi');
                 if (status === "down") {
                     const issues = await octokit.issues.listForRepo({
                         owner,

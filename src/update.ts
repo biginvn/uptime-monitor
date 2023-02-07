@@ -481,6 +481,7 @@ generator: Upptime <https://github.com/upptime/upptime>
                     console.log("Status is the same", currentStatus, status);
                 }
             } else {
+                console.log('hihi')
                 if (status === "down") {
                     const issues = await octokit.issues.listForRepo({
                         owner,

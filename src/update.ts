@@ -293,6 +293,7 @@ export const update = async (shouldCommit = false) => {
 
         const restartEc2 = async (issueNumber: number) => {
 
+            console.log('restartEc2...')
             const params:RequestParameters & Omit<{ owner: string; repo: string; issue_number: number; } & { since?: string | undefined; per_page?: number | undefined; page?: number | undefined; }, "headers" | "baseUrl" | "mediaType"> = ({
                 owner,
                 repo,

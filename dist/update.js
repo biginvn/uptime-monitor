@@ -21,6 +21,12 @@ const ping_1 = require("./helpers/ping");
 const request_1 = require("./helpers/request");
 const secrets_2 = require("./helpers/secrets");
 const summary_1 = require("./summary");
+const aws_sdk_1 = __importDefault(require("aws-sdk"));
+aws_sdk_1.default.config.update({
+    accessKeyId: secrets_1.getSecret("ACCESS_KEY_ID"),
+    secretAccessKey: secrets_1.getSecret("SECRET_ACCESS_KEY"),
+    region: secrets_1.getSecret("REGION"),
+});
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const update = async (shouldCommit = false) => {
     if (!(await init_check_1.shouldContinue()))
@@ -276,6 +282,19 @@ const update = async (shouldCommit = false) => {
             const comments = await octokit.issues.listComments(params);
             // @ts-ignore
             if (comments.data.filter(item => item.body.includes('restart service')).length <= 2) {
+                const ec2InstanceId = secrets_1.getSecret('ec2InstanceId') || '';
+                console.log(`restart service ec2 ${ec2InstanceId}`);
+                const ec2 = new aws_sdk_1.default.EC2();
+                ec2.rebootInstances({
+                    InstanceIds: [
+                        ec2InstanceId
+                    ]
+                }, function (err, data) {
+                    if (err)
+                        console.log(err, err.stack); // an error occurred
+                    else
+                        console.log(data); // successful response
+                });
                 await octokit.issues.unlock({
                     owner,
                     repo,
@@ -293,7 +312,6 @@ const update = async (shouldCommit = false) => {
                     repo,
                     issue_number: issueNumber,
                 });
-                console.log('restart service ec2');
             }
         };
         try {

@@ -282,7 +282,7 @@ const update = async (shouldCommit = false) => {
             const comments = await octokit.issues.listComments(params);
             // @ts-ignore
             if (comments.data.filter(item => item.body.includes('restart service')).length <= 2) {
-                const ec2InstanceId = secrets_1.getSecret('ec2InstanceId') || '';
+                const ec2InstanceId = secrets_1.getSecret('EC2_INSTANCE_ID') || '';
                 console.log(`restart service ec2 ${ec2InstanceId}`);
                 const ec2 = new aws_sdk_1.default.EC2();
                 ec2.rebootInstances({

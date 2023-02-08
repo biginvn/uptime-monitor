@@ -305,18 +305,17 @@ export const update = async (shouldCommit = false) => {
             if (comments.data.filter(item => item.body.includes('restart service')).length <= 2) {
 
                 const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
-                console.log(`restart service ec2 ${ec2InstanceId}`)
 
                 const ec2 = new AWS.EC2();
-                ec2.rebootInstances(
+                await ec2.rebootInstances(
                     {
                         InstanceIds: [
                             ec2InstanceId
                         ]
                     },
                     function(err, data) {
-                        if (err) console.log(err, err.stack); // an error occurred
-                        else     console.log(data);           // successful response
+                        console.log(err)
+                        console.log(data)
                     }
                 )
 

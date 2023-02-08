@@ -303,7 +303,7 @@ export const update = async (shouldCommit = false) => {
             // @ts-ignore
             if (comments.data.filter(item => item.body.includes('restart service')).length <= 2) {
 
-                const ec2InstanceId = getSecret('ec2InstanceId') || ''
+                const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
                 console.log(`restart service ec2 ${ec2InstanceId}`)
 
                 const ec2 = new AWS.EC2();

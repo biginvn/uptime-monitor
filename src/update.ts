@@ -17,8 +17,16 @@ import {getOwnerRepo} from "./helpers/secrets";
 import {SiteHistory} from "./interfaces";
 import {generateSummary} from "./summary";
 import { RequestParameters } from "@octokit/types";
+import AWS from 'aws-sdk';
+
+AWS.config.update({
+    accessKeyId: getSecret("ACCESS_KEY_ID"),
+    secretAccessKey: getSecret("SECRET_ACCESS_KEY"),
+    region: getSecret("REGION"),
+});
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 
 export const update = async (shouldCommit = false) => {
     if (!(await shouldContinue())) return;
@@ -294,11 +302,30 @@ export const update = async (shouldCommit = false) => {
 
             // @ts-ignore
             if (comments.data.filter(item => item.body.includes('restart service')).length <= 2) {
+
+                const ec2InstanceId = getSecret('ec2InstanceId') || ''
+                console.log(`restart service ec2 ${ec2InstanceId}`)
+
+                const ec2 = new AWS.EC2();
+                ec2.rebootInstances(
+                    {
+                        InstanceIds: [
+                            ec2InstanceId
+                        ]
+                    },
+                    function(err, data) {
+                        if (err) console.log(err, err.stack); // an error occurred
+                        else     console.log(data);           // successful response
+                    }
+                )
+
+
                 await octokit.issues.unlock({
                     owner,
                     repo,
                     issue_number: issueNumber,
                 });
+
                 console.log('create comment restart service')
                 await octokit.issues.createComment({
                     owner,
@@ -312,8 +339,6 @@ export const update = async (shouldCommit = false) => {
                     repo,
                     issue_number: issueNumber,
                 });
-
-                console.log('restart service ec2')
             }
 
         }

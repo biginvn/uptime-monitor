@@ -274,6 +274,7 @@ const update = async (shouldCommit = false) => {
             }
         }
         const restartEc2 = async (issueNumber) => {
+            console.log('restartEc2...');
             const params = ({
                 owner,
                 repo,

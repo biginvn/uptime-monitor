@@ -98,6 +98,7 @@ const update = async (shouldCommit = false) => {
                 });
         }
     }
+    let isRestart = false;
     for await (const site of config.sites) {
         console.log("Checking", site.url);
         if (config.delay) {
@@ -286,17 +287,20 @@ const update = async (shouldCommit = false) => {
             console.log('numberComment', numberComment);
             // @ts-ignore
             if (numberComment <= 2) {
-                console.log('restartEc2...');
-                const ec2InstanceId = secrets_1.getSecret('EC2_INSTANCE_ID') || '';
-                const ec2 = new aws_sdk_1.default.EC2();
-                await ec2.rebootInstances({
-                    InstanceIds: [
-                        ec2InstanceId
-                    ]
-                }, function (err, data) {
-                    console.log(err);
-                    console.log(data);
-                });
+                if (!isRestart) {
+                    console.log('restartEc2...');
+                    const ec2InstanceId = secrets_1.getSecret('EC2_INSTANCE_ID') || '';
+                    const ec2 = new aws_sdk_1.default.EC2();
+                    await ec2.rebootInstances({
+                        InstanceIds: [
+                            ec2InstanceId
+                        ]
+                    }, function (err, data) {
+                        console.log(err);
+                        console.log(data);
+                        isRestart = true;
+                    });
+                }
                 await octokit.issues.unlock({
                     owner,
                     repo,

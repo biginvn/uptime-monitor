@@ -276,8 +276,8 @@ export const update = async (shouldCommit = false) => {
          * sure that it's not a false alarm
          */
         if (status === "down" || status === "degraded") {
-            console.log('Waiting 60s retry...');
-            wait(60000);
+            console.log('Waiting 30s retry...');
+            wait(30000);
             const secondTry = await performTestOnce();
             if (secondTry.status === "up") {
                 result = secondTry.result;

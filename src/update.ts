@@ -280,8 +280,8 @@ export const update = async (shouldCommit = false) => {
                 responseTime = secondTry.responseTime;
                 status = secondTry.status;
             } else {
-                console.log('Waiting 30s retry...');
-                wait(30000);
+                console.log('Waiting 2m retry...');
+                wait(120000);
                 const thirdTry = await performTestOnce();
                 if (thirdTry.status === "up") {
                     result = thirdTry.result;
@@ -301,28 +301,26 @@ export const update = async (shouldCommit = false) => {
             // @ts-ignore
             const numberComment = comments.data.filter(item => item.body.includes('restart service')).length
 
+            console.log('numberComment', numberComment)
             // @ts-ignore
             if (numberComment <= 2) {
 
-                if (numberComment >= 1) {
-                    console.log('restartEc2...')
+                console.log('restartEc2...')
 
-                    const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
+                const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
 
-                    const ec2 = new AWS.EC2();
-                    await ec2.rebootInstances(
-                        {
-                            InstanceIds: [
-                                ec2InstanceId
-                            ]
-                        },
-                        function(err, data) {
-                            console.log(err)
-                            console.log(data)
-                        }
-                    )
-
-                }
+                const ec2 = new AWS.EC2();
+                await ec2.rebootInstances(
+                    {
+                        InstanceIds: [
+                            ec2InstanceId
+                        ]
+                    },
+                    function(err, data) {
+                        console.log(err)
+                        console.log(data)
+                    }
+                )
 
                 await octokit.issues.unlock({
                     owner,

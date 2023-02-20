@@ -274,7 +274,6 @@ const update = async (shouldCommit = false) => {
             }
         }
         const restartEc2 = async (issueNumber) => {
-            console.log('restartEc2...');
             const params = ({
                 owner,
                 repo,
@@ -286,6 +285,7 @@ const update = async (shouldCommit = false) => {
             // @ts-ignore
             if (numberComment <= 2) {
                 if (numberComment >= 1) {
+                    console.log('restartEc2...');
                     const ec2InstanceId = secrets_1.getSecret('EC2_INSTANCE_ID') || '';
                     const ec2 = new aws_sdk_1.default.EC2();
                     await ec2.rebootInstances({

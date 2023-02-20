@@ -292,8 +292,6 @@ export const update = async (shouldCommit = false) => {
         }
 
         const restartEc2 = async (issueNumber: number) => {
-
-            console.log('restartEc2...')
             const params:RequestParameters & Omit<{ owner: string; repo: string; issue_number: number; } & { since?: string | undefined; per_page?: number | undefined; page?: number | undefined; }, "headers" | "baseUrl" | "mediaType"> = ({
                 owner,
                 repo,
@@ -307,6 +305,8 @@ export const update = async (shouldCommit = false) => {
             if (numberComment <= 2) {
 
                 if (numberComment >= 1) {
+                    console.log('restartEc2...')
+
                     const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
 
                     const ec2 = new AWS.EC2();

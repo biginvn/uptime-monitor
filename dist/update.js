@@ -256,8 +256,8 @@ const update = async (shouldCommit = false) => {
          * sure that it's not a false alarm
          */
         if (status === "down" || status === "degraded") {
-            console.log('Waiting 60s retry...');
-            wait(60000);
+            console.log('Waiting 30s retry...');
+            wait(30000);
             const secondTry = await performTestOnce();
             if (secondTry.status === "up") {
                 result = secondTry.result;
@@ -287,20 +287,6 @@ const update = async (shouldCommit = false) => {
             console.log('numberComment', numberComment);
             // @ts-ignore
             if (numberComment <= 2) {
-                if (!isRestart) {
-                    console.log('restartEc2...');
-                    const ec2InstanceId = secrets_1.getSecret('EC2_INSTANCE_ID') || '';
-                    const ec2 = new aws_sdk_1.default.EC2();
-                    await ec2.rebootInstances({
-                        InstanceIds: [
-                            ec2InstanceId
-                        ]
-                    }, function (err, data) {
-                        console.log(err);
-                        console.log(data);
-                        isRestart = true;
-                    });
-                }
                 await octokit.issues.unlock({
                     owner,
                     repo,
@@ -318,6 +304,7 @@ const update = async (shouldCommit = false) => {
                     repo,
                     issue_number: issueNumber,
                 });
+                isRestart = true;
             }
         };
         try {
@@ -484,6 +471,19 @@ generator: Upptime <https://github.com/upptime/upptime>
         catch (error) {
             console.log("ERROR", error);
         }
+    }
+    if (isRestart) {
+        console.log('restartEc2...');
+        const ec2InstanceId = secrets_1.getSecret('EC2_INSTANCE_ID') || '';
+        const ec2 = new aws_sdk_1.default.EC2();
+        await ec2.rebootInstances({
+            InstanceIds: [
+                ec2InstanceId
+            ]
+        }, function (err, data) {
+            console.log('err restart', err);
+            console.log('data restart', data);
+        });
     }
     git_1.push();
     if (hasDelta)

@@ -16,7 +16,7 @@ import {curl} from "./helpers/request";
 import {getOwnerRepo} from "./helpers/secrets";
 import {SiteHistory} from "./interfaces";
 import {generateSummary} from "./summary";
-import { RequestParameters } from "@octokit/types";
+import {RequestParameters} from "@octokit/types";
 import AWS from 'aws-sdk';
 
 AWS.config.update({
@@ -104,6 +104,8 @@ export const update = async (shouldCommit = false) => {
         }
     }
 
+    let isRestart = false;
+
     for await (const site of config.sites) {
         console.log("Checking", site.url);
 
@@ -137,7 +139,8 @@ export const update = async (shouldCommit = false) => {
             };
             responseTime: string;
             status: "up" | "down" | "degraded";
-        }> => {
+        }> =>
+        {
             if (site.check === "tcp-ping") {
                 console.log("Using tcp-ping instead of curl");
                 try {
@@ -293,7 +296,7 @@ export const update = async (shouldCommit = false) => {
         }
 
         const restartEc2 = async (issueNumber: number) => {
-            const params:RequestParameters & Omit<{ owner: string; repo: string; issue_number: number; } & { since?: string | undefined; per_page?: number | undefined; page?: number | undefined; }, "headers" | "baseUrl" | "mediaType"> = ({
+            const params: RequestParameters & Omit<{ owner: string; repo: string; issue_number: number; } & { since?: string | undefined; per_page?: number | undefined; page?: number | undefined; }, "headers" | "baseUrl" | "mediaType"> = ({
                 owner,
                 repo,
                 issue_number: issueNumber,
@@ -306,22 +309,26 @@ export const update = async (shouldCommit = false) => {
             // @ts-ignore
             if (numberComment <= 2) {
 
-                console.log('restartEc2...')
+                if (!isRestart) {
+                    console.log('restartEc2...')
 
-                const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
+                    const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
 
-                const ec2 = new AWS.EC2();
-                await ec2.rebootInstances(
-                    {
-                        InstanceIds: [
-                            ec2InstanceId
-                        ]
-                    },
-                    function(err, data) {
-                        console.log(err)
-                        console.log(data)
-                    }
-                )
+                    const ec2 = new AWS.EC2();
+                    await ec2.rebootInstances(
+                        {
+                            InstanceIds: [
+                                ec2InstanceId
+                            ]
+                        },
+                        function (err, data) {
+                            console.log(err)
+                            console.log(data)
+                            isRestart = true
+                        }
+                    )
+
+                }
 
                 await octokit.issues.unlock({
                     owner,

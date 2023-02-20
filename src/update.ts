@@ -281,8 +281,8 @@ export const update = async (shouldCommit = false) => {
                 responseTime = secondTry.responseTime;
                 status = secondTry.status;
             } else {
-                console.log('Waiting 60s retry...');
-                wait(60000);
+                console.log('Waiting 120s retry...');
+                wait(120000);
                 const thirdTry = await performTestOnce();
                 if (thirdTry.status === "up") {
                     result = thirdTry.result;

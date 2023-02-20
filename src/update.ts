@@ -300,25 +300,29 @@ export const update = async (shouldCommit = false) => {
                 issue_number: issueNumber,
             })
             const comments = await octokit.issues.listComments(params);
+            // @ts-ignore
+            const numberComment = comments.data.filter(item => item.body.includes('restart service')).length
 
             // @ts-ignore
-            if (comments.data.filter(item => item.body.includes('restart service')).length <= 2) {
+            if (numberComment <= 2) {
 
-                const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
+                if (numberComment >= 1) {
+                    const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
 
-                const ec2 = new AWS.EC2();
-                await ec2.rebootInstances(
-                    {
-                        InstanceIds: [
-                            ec2InstanceId
-                        ]
-                    },
-                    function(err, data) {
-                        console.log(err)
-                        console.log(data)
-                    }
-                )
+                    const ec2 = new AWS.EC2();
+                    await ec2.rebootInstances(
+                        {
+                            InstanceIds: [
+                                ec2InstanceId
+                            ]
+                        },
+                        function(err, data) {
+                            console.log(err)
+                            console.log(data)
+                        }
+                    )
 
+                }
 
                 await octokit.issues.unlock({
                     owner,

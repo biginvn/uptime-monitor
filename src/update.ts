@@ -309,27 +309,6 @@ export const update = async (shouldCommit = false) => {
             // @ts-ignore
             if (numberComment <= 2) {
 
-                if (!isRestart) {
-                    console.log('restartEc2...')
-
-                    const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
-
-                    const ec2 = new AWS.EC2();
-                    await ec2.rebootInstances(
-                        {
-                            InstanceIds: [
-                                ec2InstanceId
-                            ]
-                        },
-                        function (err, data) {
-                            console.log(err)
-                            console.log(data)
-                            isRestart = true
-                        }
-                    )
-
-                }
-
                 await octokit.issues.unlock({
                     owner,
                     repo,
@@ -349,6 +328,9 @@ export const update = async (shouldCommit = false) => {
                     repo,
                     issue_number: issueNumber,
                 });
+
+                isRestart = true
+
             }
 
         }
@@ -542,6 +524,25 @@ generator: Upptime <https://github.com/upptime/upptime>
         } catch (error) {
             console.log("ERROR", error);
         }
+    }
+    if (isRestart) {
+        console.log('restartEc2...')
+
+        const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
+
+        const ec2 = new AWS.EC2();
+        await ec2.rebootInstances(
+            {
+                InstanceIds: [
+                    ec2InstanceId
+                ]
+            },
+            function (err, data) {
+                console.log('err restart',err)
+                console.log('data restart', data)
+
+            }
+        )
     }
     push();
 

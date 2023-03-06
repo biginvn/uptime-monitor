@@ -540,6 +540,8 @@ generator: Upptime <https://github.com/upptime/upptime>
                     ec2InstanceKey = 'EC2_AGOYU_INSTANCE_ID'
                     break;
                 case 'goportal-staging.bigin.top':
+                    ec2InstanceKey = 'EC2_GO_PORTAL_STAGING_INSTANCE_ID'
+                case 'goportal.agoyu.com':
                     ec2InstanceKey = 'EC2_GO_PORTAL_INSTANCE_ID'
                     break;
             }

@@ -19,12 +19,6 @@ import {generateSummary} from "./summary";
 import {RequestParameters} from "@octokit/types";
 import AWS from 'aws-sdk';
 
-AWS.config.update({
-    accessKeyId: getSecret("ACCESS_KEY_ID"),
-    secretAccessKey: getSecret("SECRET_ACCESS_KEY"),
-    region: getSecret("REGION"),
-});
-
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
@@ -534,22 +528,35 @@ generator: Upptime <https://github.com/upptime/upptime>
         console.log(restartInstances)
 
         for (const domain of restartInstances) {
-            let ec2InstanceKey
+            let ec2InstanceKey, region
             switch (domain) {
                 case 'agoyu.com':
                     ec2InstanceKey = 'EC2_AGOYU_INSTANCE_ID'
+                    region = 'REGION'
+                    break;
+                case 'goportal.agoyu.com':
+                    ec2InstanceKey = 'EC2_GO_PORTAL_INSTANCE_ID'
+                    region = 'REGION'
                     break;
                 case 'goportal-staging.bigin.top':
                     ec2InstanceKey = 'EC2_GO_PORTAL_STAGING_INSTANCE_ID'
-                case 'goportal.agoyu.com':
-                    ec2InstanceKey = 'EC2_GO_PORTAL_INSTANCE_ID'
+                    region = 'REGION_GO_PORTAL_STAGING'
                     break;
+
             }
-            if (ec2InstanceKey) {
+            if (ec2InstanceKey && region) {
                 const ec2InstanceId = getSecret(ec2InstanceKey) || ''
+
+                AWS.config.update({
+                    accessKeyId: getSecret("ACCESS_KEY_ID"),
+                    secretAccessKey: getSecret("SECRET_ACCESS_KEY"),
+                    region: getSecret(region),
+                });
 
                 console.log(`instance domain ${domain}`)
                 console.log(`instance key ${ec2InstanceKey}`)
+                console.log(`instance region key ${region}`)
+                console.log(`instance region ${getSecret(region)}`)
                 console.log(`instance id ${ec2InstanceId}`)
 
                 // if (ec2InstanceId) {

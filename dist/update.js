@@ -98,7 +98,7 @@ const update = async (shouldCommit = false) => {
                 });
         }
     }
-    let isRestart = false;
+    let restartInstances = [];
     for await (const site of config.sites) {
         console.log("Checking", site.url);
         if (config.delay) {
@@ -304,7 +304,7 @@ const update = async (shouldCommit = false) => {
                     repo,
                     issue_number: issueNumber,
                 });
-                isRestart = true;
+                restartInstances.push(site.tag);
             }
         };
         try {
@@ -472,18 +472,30 @@ generator: Upptime <https://github.com/upptime/upptime>
             console.log("ERROR", error);
         }
     }
-    if (isRestart) {
+    if (restartInstances.length) {
         console.log('restartEc2...');
-        const ec2InstanceId = secrets_1.getSecret('EC2_INSTANCE_ID') || '';
-        const ec2 = new aws_sdk_1.default.EC2();
-        await ec2.rebootInstances({
-            InstanceIds: [
-                ec2InstanceId
-            ]
-        }, function (err, data) {
-            console.log('err restart', err);
-            console.log('data restart', data);
-        });
+        console.log(restartInstances);
+        for (const tag of restartInstances) {
+            console.log(tag);
+            const ec2InstanceId = secrets_1.getSecret(`EC2_${tag}_INSTANCE_ID`) || '';
+            console.log(`instance id ${ec2InstanceId}`);
+            if (ec2InstanceId) {
+                console.log(`restartEc2...${tag}`);
+                // const ec2 = new AWS.EC2();
+                // await ec2.rebootInstances(
+                //     {
+                //         InstanceIds: [
+                //             ec2InstanceId
+                //         ]
+                //     },
+                //     function (err, data) {
+                //         console.log('err restart', err)
+                //         console.log('data restart', data)
+                //
+                //     }
+                // )
+            }
+        }
     }
     git_1.push();
     if (hasDelta)

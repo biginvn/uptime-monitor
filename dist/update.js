@@ -304,7 +304,9 @@ const update = async (shouldCommit = false) => {
                     repo,
                     issue_number: issueNumber,
                 });
-                restartInstances.push(site.tag);
+                if (!restartInstances.includes(site.url)) {
+                    restartInstances.push(site.url);
+                }
             }
         };
         try {
@@ -475,26 +477,27 @@ generator: Upptime <https://github.com/upptime/upptime>
     if (restartInstances.length) {
         console.log('restartEc2...');
         console.log(restartInstances);
-        for (const tag of restartInstances) {
-            console.log(tag);
-            const ec2InstanceId = secrets_1.getSecret(`EC2_${tag}_INSTANCE_ID`) || '';
-            console.log(`instance id ${ec2InstanceId}`);
-            if (ec2InstanceId) {
-                console.log(`restartEc2...${tag}`);
-                // const ec2 = new AWS.EC2();
-                // await ec2.rebootInstances(
-                //     {
-                //         InstanceIds: [
-                //             ec2InstanceId
-                //         ]
-                //     },
-                //     function (err, data) {
-                //         console.log('err restart', err)
-                //         console.log('data restart', data)
-                //
-                //     }
-                // )
-            }
+        for (const url of restartInstances) {
+            console.log(url);
+            const domain = new URL(url).hostname;
+            // const ec2InstanceId = getSecret(`EC2_${tag}_INSTANCE_ID`) || ''
+            console.log(`instance id ${domain}`);
+            // if (ec2InstanceId) {
+            //     console.log(`restartEc2...${tag}`)
+            //     const ec2 = new AWS.EC2();
+            //     await ec2.rebootInstances(
+            //         {
+            //             InstanceIds: [
+            //                 ec2InstanceId
+            //             ]
+            //         },
+            //         function (err, data) {
+            //             console.log('err restart', err)
+            //             console.log('data restart', data)
+            //
+            //         }
+            //     )
+            // }
         }
     }
     git_1.push();

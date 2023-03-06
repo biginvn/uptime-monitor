@@ -101,6 +101,9 @@ const update = async (shouldCommit = false) => {
     let restartInstances = [];
     for await (const site of config.sites) {
         console.log("Checking", site.url);
+        if (!restartInstances.includes(site.url)) {
+            restartInstances.push(site.url);
+        }
         if (config.delay) {
             console.log(`Waiting for ${config.delay}ms`);
             await delay(config.delay);

@@ -7,6 +7,7 @@ export interface UpptimeConfig {
     method?: string;
     name: string;
     url: string;
+    tag: string;
     port?: number;
     expectedStatusCodes?: number[];
     assignees?: string[];

@@ -104,7 +104,7 @@ export const update = async (shouldCommit = false) => {
         }
     }
 
-    let isRestart = false;
+    let restartInstances: string[] = [];
 
     for await (const site of config.sites) {
         console.log("Checking", site.url);
@@ -139,8 +139,7 @@ export const update = async (shouldCommit = false) => {
             };
             responseTime: string;
             status: "up" | "down" | "degraded";
-        }> =>
-        {
+        }> => {
             if (site.check === "tcp-ping") {
                 console.log("Using tcp-ping instead of curl");
                 try {
@@ -329,7 +328,7 @@ export const update = async (shouldCommit = false) => {
                     issue_number: issueNumber,
                 });
 
-                isRestart = true
+                restartInstances.push(site.tag)
 
             }
 
@@ -525,24 +524,35 @@ generator: Upptime <https://github.com/upptime/upptime>
             console.log("ERROR", error);
         }
     }
-    if (isRestart) {
+    if (restartInstances.length) {
         console.log('restartEc2...')
+        console.log(restartInstances)
 
-        const ec2InstanceId = getSecret('EC2_INSTANCE_ID') || ''
+        for (const tag of restartInstances) {
+            console.log(tag)
+            const ec2InstanceId = getSecret(`EC2_${tag}_INSTANCE_ID`) || ''
 
-        const ec2 = new AWS.EC2();
-        await ec2.rebootInstances(
-            {
-                InstanceIds: [
-                    ec2InstanceId
-                ]
-            },
-            function (err, data) {
-                console.log('err restart',err)
-                console.log('data restart', data)
+            console.log(`instance id ${ec2InstanceId}`)
 
+            if (ec2InstanceId) {
+                console.log(`restartEc2...${tag}`)
+                // const ec2 = new AWS.EC2();
+                // await ec2.rebootInstances(
+                //     {
+                //         InstanceIds: [
+                //             ec2InstanceId
+                //         ]
+                //     },
+                //     function (err, data) {
+                //         console.log('err restart', err)
+                //         console.log('data restart', data)
+                //
+                //     }
+                // )
             }
-        )
+
+        }
+
     }
     push();
 

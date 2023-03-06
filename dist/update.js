@@ -22,11 +22,6 @@ const request_1 = require("./helpers/request");
 const secrets_2 = require("./helpers/secrets");
 const summary_1 = require("./summary");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
-aws_sdk_1.default.config.update({
-    accessKeyId: secrets_1.getSecret("ACCESS_KEY_ID"),
-    secretAccessKey: secrets_1.getSecret("SECRET_ACCESS_KEY"),
-    region: secrets_1.getSecret("REGION"),
-});
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const update = async (shouldCommit = false) => {
     if (!(await init_check_1.shouldContinue()))
@@ -482,21 +477,32 @@ generator: Upptime <https://github.com/upptime/upptime>
         console.log('restartEc2...');
         console.log(restartInstances);
         for (const domain of restartInstances) {
-            let ec2InstanceKey;
+            let ec2InstanceKey, region;
             switch (domain) {
                 case 'agoyu.com':
                     ec2InstanceKey = 'EC2_AGOYU_INSTANCE_ID';
+                    region = 'REGION';
+                    break;
+                case 'goportal.agoyu.com':
+                    ec2InstanceKey = 'EC2_GO_PORTAL_INSTANCE_ID';
+                    region = 'REGION';
                     break;
                 case 'goportal-staging.bigin.top':
                     ec2InstanceKey = 'EC2_GO_PORTAL_STAGING_INSTANCE_ID';
-                case 'goportal.agoyu.com':
-                    ec2InstanceKey = 'EC2_GO_PORTAL_INSTANCE_ID';
+                    region = 'REGION_GO_PORTAL_STAGING';
                     break;
             }
-            if (ec2InstanceKey) {
+            if (ec2InstanceKey && region) {
                 const ec2InstanceId = secrets_1.getSecret(ec2InstanceKey) || '';
+                aws_sdk_1.default.config.update({
+                    accessKeyId: secrets_1.getSecret("ACCESS_KEY_ID"),
+                    secretAccessKey: secrets_1.getSecret("SECRET_ACCESS_KEY"),
+                    region: secrets_1.getSecret(region),
+                });
                 console.log(`instance domain ${domain}`);
                 console.log(`instance key ${ec2InstanceKey}`);
+                console.log(`instance region key ${region}`);
+                console.log(`instance region ${secrets_1.getSecret(region)}`);
                 console.log(`instance id ${ec2InstanceId}`);
                 // if (ec2InstanceId) {
                 //     console.log(`restartEc2...${tag}`)

@@ -328,7 +328,7 @@ export const update = async (shouldCommit = false) => {
                     issue_number: issueNumber,
                 });
 
-                if (!restartInstances.includes(site.tag)) {
+                if (!restartInstances.includes(site.url)) {
                     restartInstances.push(site.url)
                 }
 

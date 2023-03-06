@@ -102,10 +102,7 @@ export const update = async (shouldCommit = false) => {
 
     for await (const site of config.sites) {
         console.log("Checking", site.url);
-        const domain = new URL(site.url).hostname
-        if (!restartInstances.includes(domain)) {
-            restartInstances.push(domain)
-        }
+
         if (config.delay) {
             console.log(`Waiting for ${config.delay}ms`);
             await delay(config.delay);
@@ -325,8 +322,9 @@ export const update = async (shouldCommit = false) => {
                     issue_number: issueNumber,
                 });
 
-                if (!restartInstances.includes(site.url)) {
-                    restartInstances.push(site.url)
+                const domain = new URL(site.url).hostname
+                if (!restartInstances.includes(domain)) {
+                    restartInstances.push(domain)
                 }
 
             }
@@ -559,22 +557,22 @@ generator: Upptime <https://github.com/upptime/upptime>
                 console.log(`instance region ${getSecret(region)}`)
                 console.log(`instance id ${ec2InstanceId}`)
 
-                // if (ec2InstanceId) {
-                //     console.log(`restartEc2...${tag}`)
-                //     const ec2 = new AWS.EC2();
-                //     await ec2.rebootInstances(
-                //         {
-                //             InstanceIds: [
-                //                 ec2InstanceId
-                //             ]
-                //         },
-                //         function (err, data) {
-                //             console.log('err restart', err)
-                //             console.log('data restart', data)
-                //
-                //         }
-                //     )
-                // }
+                if (ec2InstanceId) {
+                    console.log(`restartEc2...${domain}`)
+                    const ec2 = new AWS.EC2();
+                    await ec2.rebootInstances(
+                        {
+                            InstanceIds: [
+                                ec2InstanceId
+                            ]
+                        },
+                        function (err, data) {
+                            console.log('err restart', err)
+                            console.log('data restart', data)
+
+                        }
+                    )
+                }
             }
 
 

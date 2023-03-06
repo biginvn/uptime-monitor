@@ -108,8 +108,9 @@ export const update = async (shouldCommit = false) => {
 
     for await (const site of config.sites) {
         console.log("Checking", site.url);
-        if (!restartInstances.includes(site.url)) {
-            restartInstances.push(site.url)
+        const domain = new URL(site.url).hostname
+        if (!restartInstances.includes(domain)) {
+            restartInstances.push(domain)
         }
         if (config.delay) {
             console.log(`Waiting for ${config.delay}ms`);
@@ -532,29 +533,41 @@ generator: Upptime <https://github.com/upptime/upptime>
         console.log('restartEc2...')
         console.log(restartInstances)
 
-        for (const url of restartInstances) {
-            console.log(url)
-            const domain = new URL(url).hostname
-            // const ec2InstanceId = getSecret(`EC2_${tag}_INSTANCE_ID`) || ''
+        for (const domain of restartInstances) {
+            let ec2InstanceKey
+            switch (domain) {
+                case 'agoyu.com':
+                    ec2InstanceKey = 'EC2_AGOYU_INSTANCE_ID'
+                    break;
+                case 'goportal-staging.bigin.top':
+                    ec2InstanceKey = 'EC2_GO_PORTAL_INSTANCE_ID'
+                    break;
+            }
+            if (ec2InstanceKey) {
+                const ec2InstanceId = getSecret(ec2InstanceKey) || ''
 
-            console.log(`instance id ${domain}`)
+                console.log(`instance domain ${domain}`)
+                console.log(`instance key ${ec2InstanceKey}`)
+                console.log(`instance id ${ec2InstanceId}`)
 
-            // if (ec2InstanceId) {
-            //     console.log(`restartEc2...${tag}`)
-            //     const ec2 = new AWS.EC2();
-            //     await ec2.rebootInstances(
-            //         {
-            //             InstanceIds: [
-            //                 ec2InstanceId
-            //             ]
-            //         },
-            //         function (err, data) {
-            //             console.log('err restart', err)
-            //             console.log('data restart', data)
-            //
-            //         }
-            //     )
-            // }
+                // if (ec2InstanceId) {
+                //     console.log(`restartEc2...${tag}`)
+                //     const ec2 = new AWS.EC2();
+                //     await ec2.rebootInstances(
+                //         {
+                //             InstanceIds: [
+                //                 ec2InstanceId
+                //             ]
+                //         },
+                //         function (err, data) {
+                //             console.log('err restart', err)
+                //             console.log('data restart', data)
+                //
+                //         }
+                //     )
+                // }
+            }
+
 
         }
 

@@ -22,11 +22,6 @@ const request_1 = require("./helpers/request");
 const secrets_2 = require("./helpers/secrets");
 const summary_1 = require("./summary");
 const aws_sdk_1 = __importDefault(require("aws-sdk"));
-aws_sdk_1.default.config.update({
-    accessKeyId: secrets_1.getSecret("ACCESS_KEY_ID"),
-    secretAccessKey: secrets_1.getSecret("SECRET_ACCESS_KEY"),
-    region: secrets_1.getSecret("REGION"),
-});
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const update = async (shouldCommit = false) => {
     if (!(await init_check_1.shouldContinue()))
@@ -98,6 +93,7 @@ const update = async (shouldCommit = false) => {
                 });
         }
     }
+    let restartInstances = [];
     for await (const site of config.sites) {
         console.log("Checking", site.url);
         if (config.delay) {
@@ -255,7 +251,8 @@ const update = async (shouldCommit = false) => {
          * sure that it's not a false alarm
          */
         if (status === "down" || status === "degraded") {
-            wait(1000);
+            console.log('Waiting 30s retry...');
+            wait(30000);
             const secondTry = await performTestOnce();
             if (secondTry.status === "up") {
                 result = secondTry.result;
@@ -263,8 +260,8 @@ const update = async (shouldCommit = false) => {
                 status = secondTry.status;
             }
             else {
-                console.log('Waiting 30s retry...');
-                wait(30000);
+                console.log('Waiting 120s retry...');
+                wait(120000);
                 const thirdTry = await performTestOnce();
                 if (thirdTry.status === "up") {
                     result = thirdTry.result;
@@ -274,7 +271,6 @@ const update = async (shouldCommit = false) => {
             }
         }
         const restartEc2 = async (issueNumber) => {
-            console.log('restartEc2...');
             const params = ({
                 owner,
                 repo,
@@ -282,17 +278,10 @@ const update = async (shouldCommit = false) => {
             });
             const comments = await octokit.issues.listComments(params);
             // @ts-ignore
-            if (comments.data.filter(item => item.body.includes('restart service')).length <= 2) {
-                const ec2InstanceId = secrets_1.getSecret('EC2_INSTANCE_ID') || '';
-                const ec2 = new aws_sdk_1.default.EC2();
-                await ec2.rebootInstances({
-                    InstanceIds: [
-                        ec2InstanceId
-                    ]
-                }, function (err, data) {
-                    console.log(err);
-                    console.log(data);
-                });
+            const numberComment = comments.data.filter(item => item.body.includes('restart service')).length;
+            console.log('numberComment', numberComment);
+            // @ts-ignore
+            if (numberComment <= 2) {
                 await octokit.issues.unlock({
                     owner,
                     repo,
@@ -310,6 +299,10 @@ const update = async (shouldCommit = false) => {
                     repo,
                     issue_number: issueNumber,
                 });
+                const domain = new URL(site.url).hostname;
+                if (!restartInstances.includes(domain)) {
+                    restartInstances.push(domain);
+                }
             }
         };
         try {
@@ -475,6 +468,52 @@ generator: Upptime <https://github.com/upptime/upptime>
         }
         catch (error) {
             console.log("ERROR", error);
+        }
+    }
+    if (restartInstances.length) {
+        console.log('restartEc2...');
+        console.log(restartInstances);
+        for (const domain of restartInstances) {
+            let ec2InstanceKey, region;
+            switch (domain) {
+                case 'agoyu.com':
+                    ec2InstanceKey = 'EC2_AGOYU_INSTANCE_ID';
+                    region = 'REGION';
+                    break;
+                case 'goportal.agoyu.com':
+                    ec2InstanceKey = 'EC2_GO_PORTAL_INSTANCE_ID';
+                    region = 'REGION';
+                    break;
+                case 'goportal-staging.bigin.top':
+                    ec2InstanceKey = 'EC2_GO_PORTAL_STAGING_INSTANCE_ID';
+                    region = 'REGION_GO_PORTAL_STAGING';
+                    break;
+            }
+            if (ec2InstanceKey && region) {
+                const ec2InstanceId = secrets_1.getSecret(ec2InstanceKey) || '';
+                aws_sdk_1.default.config.update({
+                    accessKeyId: secrets_1.getSecret("ACCESS_KEY_ID"),
+                    secretAccessKey: secrets_1.getSecret("SECRET_ACCESS_KEY"),
+                    region: secrets_1.getSecret(region),
+                });
+                console.log(`instance domain ${domain}`);
+                console.log(`instance key ${ec2InstanceKey}`);
+                console.log(`instance region key ${region}`);
+                console.log(`instance region ${secrets_1.getSecret(region)}`);
+                console.log(`instance id ${ec2InstanceId}`);
+                if (ec2InstanceId) {
+                    console.log(`restartEc2...${domain}`);
+                    const ec2 = new aws_sdk_1.default.EC2();
+                    await ec2.rebootInstances({
+                        InstanceIds: [
+                            ec2InstanceId
+                        ]
+                    }, function (err, data) {
+                        console.log('err restart', err);
+                        console.log('data restart', data);
+                    });
+                }
+            }
         }
     }
     git_1.push();
